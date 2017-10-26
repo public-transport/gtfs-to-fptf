@@ -27,7 +27,7 @@ npm install -g gtfs-to-fptf
 
 ### Library
 
-The script takes an `object` containing GTFS file streams and returns a `[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/promise)` that will resolve in another `object` containing FPTF object streams.
+The script takes an `object` containing **valid** GTFS file streams and returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/promise) that will resolve in another `object` containing FPTF object streams.
 
 Currently, the following GTFS files are supported:
 
