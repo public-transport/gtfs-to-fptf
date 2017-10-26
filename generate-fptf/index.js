@@ -1,7 +1,5 @@
 'use strict'
 
-const ndjson = require('ndjson')
-
 const map = require('through2-map').obj
 const filter = require('through2-filter').obj
 const sortBy = require('lodash.sortby')
