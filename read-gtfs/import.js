@@ -5,11 +5,12 @@ const level = require('level')
 const levelWriteStream = require('level-writestream')
 const tmp = require('tmp')
 const map = require('through2-map').obj
-const randomId = require('unique-string')
 const pump = require('pump')
 
 // cleanup even on errors
 tmp.setGracefulCleanup()
+
+const {dataToDb} = require('./mapping')
 
 const importIntoDB = (gtfs) => {
 	// todo: additional file checks
@@ -24,20 +25,18 @@ const importIntoDB = (gtfs) => {
 	levelWriteStream(db)
 
 	const tasks = [
-		{input: gtfs.agency, key: a => 'agency-' + a.agency_id},
-		{input: gtfs.stops, key: s => 'stop-' + s.stop_id},
-		{input: gtfs.routes, key: r => 'route-' + r.route_id},
-		{input: gtfs.trips, key: t => 'trip-' + t.route_id + '-' + t.trip_id},
-		{input: gtfs.stop_times, key: st => 'stop_time-' + randomId() + '-' + st.trip_id}
+		{input: gtfs.agency, key: dataToDb.agency},
+		{input: gtfs.stops, key: dataToDb.stops},
+		{input: gtfs.routes, key: dataToDb.routes},
+		{input: gtfs.trips, key: dataToDb.trips},
+		{input: gtfs.stop_times, key: dataToDb.stop_times}
 	]
-	if (gtfs.calendar) tasks.push({
-		input: gtfs.calendar,
-		key: s => 'service-' + s.service_id
-	})
-	if (gtfs.calendar_dates) tasks.push({
-		input: gtfs.calendar_dates,
-		key: e => 'calendar_date-' + randomId() + '-' + e.service_id
-	})
+	if (gtfs.calendar) {
+		tasks.push({input: gtfs.calendar, key: dataToDb.calendar})
+	}
+	if (gtfs.calendar_dates) {
+		tasks.push({input: gtfs.calendar_dates, key: dataToDb.calendar_dates})
+	}
 
 	const processTask = (task) => new Promise((resolve, reject) => {
 		const dataToOp = (data) => ({
