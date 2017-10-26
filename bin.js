@@ -16,10 +16,10 @@ const argv = mri(process.argv.slice(2), {
 })
 
 const opt = {
-    source: argv._[0],
-    destination: argv._[1],
-    help: argv.help || argv.h,
-    version: argv.version || argv.v
+	source: argv._[0],
+	destination: argv._[1],
+	help: argv.help || argv.h,
+	version: argv.version || argv.v
 }
 
 if (opt.help === true) {
@@ -27,12 +27,12 @@ if (opt.help === true) {
 gtfs-to-fptf [options] gtfs-directory fptf-directory
 
 Arguments:
-    gtfs-directory       Input directory containing GTFS textfiles.
-    fptf-directory       Output directory where the FPTF files will be created.
+	gtfs-directory       Input directory containing GTFS textfiles.
+	fptf-directory       Output directory where the FPTF files will be created.
 
 Options:
-    --help       -h  Show this help message.
-    --version    -v  Show the version number.
+	--help       -h  Show this help message.
+	--version    -v  Show the version number.
 
 `)
 	process.exit(0)
