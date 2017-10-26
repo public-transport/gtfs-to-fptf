@@ -13,7 +13,7 @@ tmp.setGracefulCleanup()
 
 const parser = () => csv({headers: true})
 
-const prepare = (type, hasID = true, specialID = false) => (element) => ({
+const dataToOp = (type, hasID = true, specialID = false) => (element) => ({
 	key: type + '-' + (specialID ? element[specialID]+'-' : '') + (hasID ? element[type + '_id'] : id()),
 	value: element
 })
@@ -30,17 +30,17 @@ const main = (gtfs) => {
 	})
 	levelWriteStream(db)
 
-	const writeStreams = []
+	const streams = []
 
-	writeStreams.push(gtfs.agency.pipe(parser()).pipe(map(prepare('agency'))).pipe(db.createWriteStream()))
-	writeStreams.push(gtfs.stops.pipe(parser()).pipe(map(prepare('stop'))).pipe(db.createWriteStream()))
-	writeStreams.push(gtfs.routes.pipe(parser()).pipe(map(prepare('route'))).pipe(db.createWriteStream()))
-	writeStreams.push(gtfs.trips.pipe(parser()).pipe(map(prepare('trip', true, 'route_id'))).pipe(db.createWriteStream()))
-	writeStreams.push(gtfs.stop_times.pipe(parser()).pipe(map(prepare('stop_time', false, 'trip_id'))).pipe(db.createWriteStream()))
-	if(gtfs.calendar) writeStreams.push(gtfs.calendar.pipe(parser()).pipe(map(prepare('service'))).pipe(db.createWriteStream()))
-	if(gtfs.calendar_dates) writeStreams.push(gtfs.calendar_dates.pipe(parser()).pipe(map(prepare('calendar_date', false,  'service_id'))).pipe(db.createWriteStream()))
+	streams.push(gtfs.agency.pipe(parser()).pipe(map(dataToOp('agency'))).pipe(db.createWriteStream()))
+	streams.push(gtfs.stops.pipe(parser()).pipe(map(dataToOp('stop'))).pipe(db.createWriteStream()))
+	streams.push(gtfs.routes.pipe(parser()).pipe(map(dataToOp('route'))).pipe(db.createWriteStream()))
+	streams.push(gtfs.trips.pipe(parser()).pipe(map(dataToOp('trip', true, 'route_id'))).pipe(db.createWriteStream()))
+	streams.push(gtfs.stop_times.pipe(parser()).pipe(map(dataToOp('stop_time', false, 'trip_id'))).pipe(db.createWriteStream()))
+	if(gtfs.calendar) streams.push(gtfs.calendar.pipe(parser()).pipe(map(dataToOp('service'))).pipe(db.createWriteStream()))
+	if(gtfs.calendar_dates) streams.push(gtfs.calendar_dates.pipe(parser()).pipe(map(dataToOp('calendar_date', false,  'service_id'))).pipe(db.createWriteStream()))
 
-	return Promise.all(writeStreams.map(toPromise))
+	return Promise.all(streams.map(toPromise))
 	.then(() => db).catch(console.error)
 }
 
