@@ -1,10 +1,10 @@
 # gtfs-to-fptf
 
-Convert [GTFS](https://developers.google.com/transit/gtfs/) data to [FPTF](https://github.com/public-transport/friendly-public-transport-format) using the library or the CLI.
+Convert [GTFS](https://developers.google.com/transit/gtfs/) data to [FPTF](https://github.com/public-transport/friendly-public-transport-format): library and CLI.
 
-*Work in progress. Documentation following soon. I ([@juliuste](https://github.com/juliuste) will be working on this the next few days, so stay tuned. This software is - by far - not stable yet. The CLI kinda worked already though, at least using data from NRB and DB.*
+*Work in progress. Documentation following soon. [@juliuste](https://github.com/juliuste) will be working on this the next few days, so stay tuned. This software is - by far - not stable yet. The CLI kinda worked already though, at least using data from NRB and DB.*
 
-Things I'll be working on this week:
+Things [@juliuste](https://github.com/juliuste) will be working on this week:
 - Bugfixes (there's a lot 😛)
 - Error handling
 - Outsourcing the GTFS library
@@ -13,7 +13,7 @@ Things I'll be working on this week:
 - Tests?
 - Eventually publish to npm (hopefully)
 
-Let me know if something else is missing.
+Let him know if something else is missing.
 
 [![npm version](https://img.shields.io/npm/v/gtfs-to-fptf.svg)](https://www.npmjs.com/package/gtfs-to-fptf)
 [![dependency status](https://img.shields.io/david/public-transport/gtfs-to-fptf.svg)](https://david-dm.org/public-transport/gtfs-to-fptf)
