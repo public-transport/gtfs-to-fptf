@@ -12,14 +12,4 @@ const dataToDB = {
 	calendar_dates: e => 'calendar_date-' + randomId() + '-' + e.service_id
 }
 
-const dbToData = {
-	agency: agencyId => 'agency-' + agencyId,
-	stops: stopId => 'stop-' + stopId,
-	routes: routeId => 'route-' + routeId,
-	trips: (routeId, tripId) => 'trip-' + routeId + '-' + tripId,
-	stop_times: (stopTimeId, tripId) => 'stop_time-' + stopTimeId + '-' + tripId,
-	calendar: serviceId => 'service-' + serviceId,
-	calendar_dates: (excId, serviceId) => 'calendar_date-' + excId + '-' + serviceId
-}
-
-module.exports = {dataToDB, dbToData}
+module.exports = {dataToDB}
