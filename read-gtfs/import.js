@@ -6,17 +6,10 @@ const levelWriteStream = require('level-writestream')
 const tmp = require('tmp')
 const map = require('through2-map').obj
 const id = require('unique-string')
-const toPromise = require('stream-to-promise')
+const pump = require('pump')
 
 // cleanup even on errors
 tmp.setGracefulCleanup()
-
-const parser = () => csv({headers: true})
-
-const dataToOp = (type, hasID = true, specialID = false) => (element) => ({
-	key: type + '-' + (specialID ? element[specialID]+'-' : '') + (hasID ? element[type + '_id'] : id()),
-	value: element
-})
 
 const main = (gtfs) => {
 	// todo: additional file checks
@@ -30,17 +23,40 @@ const main = (gtfs) => {
 	})
 	levelWriteStream(db)
 
-	const streams = []
+	const tasks = [
+		{input: gtfs.agency, key: a => 'agency-' + a.agency_id},
+		{input: gtfs.stops, key: s => 'stop-' + s.stop_id},
+		{input: gtfs.routes, key: r => 'route-' + r.route_id},
+		{input: gtfs.trips, key: t => 'trip-' + t.route_id + '-' + t.trip_id},
+		{input: gtfs.stop_times, key: st => 'stop_time-' + id() + '-' + st.trip_id}
+	]
+	if (gtfs.calendar) tasks.push({
+		input: gtfs.calendar,
+		key: s => 'service-' + s.service_id
+	})
+	if (gtfs.calendar_dates) tasks.push({
+		input: gtfs.calendar_dates,
+		key: e => 'calendar_date-' + id() + '-' + e.service_id
+	})
 
-	streams.push(gtfs.agency.pipe(parser()).pipe(map(dataToOp('agency'))).pipe(db.createWriteStream()))
-	streams.push(gtfs.stops.pipe(parser()).pipe(map(dataToOp('stop'))).pipe(db.createWriteStream()))
-	streams.push(gtfs.routes.pipe(parser()).pipe(map(dataToOp('route'))).pipe(db.createWriteStream()))
-	streams.push(gtfs.trips.pipe(parser()).pipe(map(dataToOp('trip', true, 'route_id'))).pipe(db.createWriteStream()))
-	streams.push(gtfs.stop_times.pipe(parser()).pipe(map(dataToOp('stop_time', false, 'trip_id'))).pipe(db.createWriteStream()))
-	if(gtfs.calendar) streams.push(gtfs.calendar.pipe(parser()).pipe(map(dataToOp('service'))).pipe(db.createWriteStream()))
-	if(gtfs.calendar_dates) streams.push(gtfs.calendar_dates.pipe(parser()).pipe(map(dataToOp('calendar_date', false,  'service_id'))).pipe(db.createWriteStream()))
+	const processTask = (task) => new Promise((resolve, reject) => {
+		const dataToOp = (data) => ({
+			key: task.key(data),
+			value: data
+		})
 
-	return Promise.all(streams.map(toPromise))
+		pump(
+			csv({headers: true}), // parse
+			map(dataToOp), // convert
+			db.createWriteStream(), // store
+			(err) => {
+				if (err) reject(err)
+				else resolve()
+			}
+		)
+	})
+
+	return Promise.all(tasks.map(processTask))
 	.then(() => db)
 }
 
