@@ -24,7 +24,7 @@ const main = (gtfs) => {
 		throw new Error('missing `calendar` or `calendar_dates`, at least one must exist.')
 	}
 	const tempDir = tmp.dirSync({prefix: 'read-GTFS-'})
-	console.warn(`database written to ${tempDir.name}`)
+	console.warn(`database written to ${tempDir.name}`) // todo: remove logging, expose path
 	const db = level(tempDir.name, {
 		valueEncoding: 'json'
 	})
@@ -41,7 +41,7 @@ const main = (gtfs) => {
 	if(gtfs.calendar_dates) streams.push(gtfs.calendar_dates.pipe(parser()).pipe(map(dataToOp('calendar_date', false,  'service_id'))).pipe(db.createWriteStream()))
 
 	return Promise.all(streams.map(toPromise))
-	.then(() => db).catch(console.error)
+	.then(() => db)
 }
 
 module.exports = main
