@@ -1,6 +1,6 @@
 'use strict'
 
-const csv = require('csv-streamify')
+const csv = require('fast-csv')
 const level = require('level')
 const levelWriteStream = require('level-writestream')
 const tmp = require('tmp')
@@ -11,10 +11,7 @@ const toPromise = require('stream-to-promise')
 // cleanup even on errors
 tmp.setGracefulCleanup()
 
-const parser = () => csv({
-    objectMode: true,
-    columns: true
-})
+const parser = () => csv({headers: true})
 
 const prepare = (type, hasID = true, specialID = false) => (element) => ({
     key: type + '-' + (specialID ? element[specialID]+'-' : '') + (hasID ? element[type + '_id'] : id()),
