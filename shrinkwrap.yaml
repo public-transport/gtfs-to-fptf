@@ -18,6 +18,7 @@ dependencies:
   moment-timezone: 0.5.13
   mri: 1.1.0
   ndjson: 1.5.0
+  pify: 3.0.0
   pump: 1.0.2
   stream-to-array: 2.3.0
   stream-to-promise: 2.2.0
@@ -415,6 +416,11 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha1-nJRWmJ6fZYgBewQ01WCXZ1w9oF4=
+  /pify/3.0.0:
+    engines:
+      node: '>=4'
+    resolution:
+      integrity: sha1-5aSs0sEB/fPZpNB/DbxNtJ3SgXY=
   /prebuild-install/2.3.0:
     dependencies:
       expand-template: 1.1.0
@@ -611,7 +617,6 @@ packages:
     resolution:
       integrity: sha1-pcbVMr5lbiPbgg77lDofBJmNY68=
 registry: 'https://registry.npmjs.org/'
-shrinkwrapMinorVersion: 1
 shrinkwrapVersion: 3
 specifiers:
   fast-csv: ^2.4.1
@@ -633,6 +638,7 @@ specifiers:
   moment-timezone: ^0.5.13
   mri: ^1.1.0
   ndjson: ^1.5.0
+  pify: ^3.0.0
   pump: ^1.0.2
   stream-to-array: ^2.3.0
   stream-to-promise: ^2.2.0

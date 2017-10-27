@@ -44,6 +44,7 @@
 		"moment-timezone": "^0.5.13",
 		"mri": "^1.1.0",
 		"ndjson": "^1.5.0",
+		"pify": "^3.0.0",
 		"pump": "^1.0.2",
 		"stream-to-array": "^2.3.0",
 		"stream-to-promise": "^2.2.0",
