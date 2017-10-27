@@ -1,7 +1,7 @@
 'use strict'
 
 const parseCsv = require('fast-csv')
-const levelWriteStream = require('level-writestream')
+const levelWriteStream = require('level-write-stream')
 const map = require('through2-map').obj
 const pump = require('pump')
 
@@ -12,8 +12,6 @@ const importIntoDB = (gtfs, db) => {
 	if(!gtfs.calendar && !gtfs.calendar_dates){
 		throw new Error('missing `calendar` or `calendar_dates`, at least one must exist.')
 	}
-
-	levelWriteStream(db) // todo: stop monkey-patching db
 
 	const tasks = [
 		{input: gtfs.agency, key: dataToDb.agency},
@@ -38,7 +36,7 @@ const importIntoDB = (gtfs, db) => {
 		pump(
 			parseCsv({headers: true}), // parse
 			map(dataToOp), // convert
-			db.createWriteStream(), // store
+			levelWriteStream(db), // store
 			(err) => {
 				if (err) reject(err)
 				else resolve()
