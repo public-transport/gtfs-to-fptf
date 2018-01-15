@@ -1,11 +1,14 @@
 'use strict'
 
+const pify = require('pify')
+const pump = require('pump')
 const parseCsv = require('csv-parser')
 const levelWriteStream = require('level-write-stream')
 const map = require('through2-map').obj
-const pump = require('pump')
 
 const {dataToDb} = require('./mapping')
+
+const pPump = pify(pump)
 
 const importIntoDB = (gtfs, db) => {
 	// todo: additional file checks
@@ -13,38 +16,32 @@ const importIntoDB = (gtfs, db) => {
 		throw new Error('missing `calendar` or `calendar_dates`, at least one must exist.')
 	}
 
+	const dbWriteStream = levelWriteStream(db)
+	const convert = (input, mapKey) => {
+		return pPump(
+			input,
+			parseCsv(),
+			// convert to LevelDB op
+			map(data => ({key: mapKey(data), value: data})),
+			dbWriteStream() // store
+		)
+	}
+
 	const tasks = [
-		{input: gtfs.agency, key: dataToDb.agency},
-		{input: gtfs.stops, key: dataToDb.stops},
-		{input: gtfs.routes, key: dataToDb.routes},
-		{input: gtfs.trips, key: dataToDb.trips},
-		{input: gtfs.stop_times, key: dataToDb.stop_times}
+		convert(gtfs.agency, dataToDb.agency),
+		convert(gtfs.stops, dataToDb.stops),
+		convert(gtfs.routes, dataToDb.routes),
+		convert(gtfs.trips, dataToDb.trips),
+		convert(gtfs.stop_times, dataToDb.stop_times)
 	]
 	if (gtfs.calendar) {
-		tasks.push({input: gtfs.calendar, key: dataToDb.calendar})
+		tasks.push(convert(gtfs.calendar, dataToDb.calendar))
 	}
 	if (gtfs.calendar_dates) {
-		tasks.push({input: gtfs.calendar_dates, key: dataToDb.calendar_dates})
+		tasks.push(convert(gtfs.calendar_dates, dataToDb.calendar_dates))
 	}
 
-	const processTask = (task) => new Promise((resolve, reject) => {
-		const dataToOp = (data) => ({
-			key: task.key(data),
-			value: data
-		})
-
-		pump(
-			parseCsv(), // parse CSV
-			map(dataToOp), // convert
-			levelWriteStream(db), // store
-			(err) => {
-				if (err) reject(err)
-				else resolve()
-			}
-		)
-	})
-
-	return Promise.all(tasks.map(processTask))
+	return Promise.all(tasks)
 }
 
 module.exports = importIntoDB
