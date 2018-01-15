@@ -14,19 +14,15 @@ tmp.setGracefulCleanup() // clean up even on errors
 const pLevel = pify(level)
 const pTmpDir = pify(tmp.dir)
 
-const convert = (srcDir, workDir) => {
-	const p = workDir ? Promise.resolve(workDir) : pTmpDir({prefix: 'read-GTFS-'})
+const convert = async (srcDir, workDir) => {
+	if (!workDir) workDir = await pTmpDir({prefix: 'read-GTFS-'})
+
 	const gtfsStreams = readGTFS(srcDir)
+	const db = await pLevel(workDir, {valueEncoding: 'json'})
+	// todo: what if the data has already been imported?
+	await importGTFS(gtfsStreams, db)
 
-	return p
-	.then((dir) => pLevel(dir, {valueEncoding: 'json'}))
-	.then((db) => {
-		const reader = dbReader(db)
-
-		// todo: what if the data has already been imported?
-		return importGTFS(gtfsStreams, db)
-		.then(() => generateFPTF(reader))
-	})
+	yield generateFPTF(dbReader(db))
 	// todo: remove tmp dir
 }
 
