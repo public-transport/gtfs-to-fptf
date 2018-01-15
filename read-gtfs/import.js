@@ -3,7 +3,7 @@
 const pify = require('pify')
 const pump = require('pump')
 const parseCsv = require('csv-parser')
-const levelWriteStream = require('level-write-stream')
+const levelWriteStream = require('./lib/level-write-stream')
 const map = require('through2-map').obj
 
 const {dataToDb} = require('./mapping')
@@ -16,14 +16,13 @@ const importIntoDB = (gtfs, db) => {
 		throw new Error('missing `calendar` or `calendar_dates`, at least one must exist.')
 	}
 
-	const dbWriteStream = levelWriteStream(db)
 	const convert = (input, mapKey) => {
 		return pPump(
 			input,
 			parseCsv(),
 			// convert to LevelDB op
 			map(data => ({key: mapKey(data), value: data})),
-			dbWriteStream() // store
+			levelWriteStream(db) // store
 		)
 	}
 
