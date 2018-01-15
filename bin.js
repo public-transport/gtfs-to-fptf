@@ -2,11 +2,12 @@
 'use strict'
 
 const mri = require('mri')
-const fs = require('fs')
+const fse = require('fs-extra')
 const path = require('path')
+const pify = require('pify')
+const pump = require('pump')
 const ndjson = require('ndjson')
-const toPromise = require('stream-to-promise')
-const isEmpty = require('is-empty-file')
+const isEmptyFile = require('is-empty-file')
 
 const toFPTF = require('./index')
 const pkg = require('./package.json')
@@ -45,45 +46,39 @@ if (opt.version === true) {
 
 // main program
 
-const files = ['agency', 'stops', 'routes', 'trips', 'stop_times', 'calendar', 'calendar_dates']
+const pPump = pify(pump)
+const pIsEmptyFile = pify(isEmptyFile)
 
-const main = (opt) => {
+const main = async (opt) => {
 	const sourceDir = path.resolve(opt.source)
-	const destination = path.resolve(opt.destination)
+	const destDir = path.resolve(opt.destination)
+	await fse.ensureDir(destDir)
 
-	toFPTF(sourceDir)
-	.then((fptf) => {
-		if(!fs.existsSync(destination)) fs.mkdirSync(destination)
-		fs.accessSync(destination, fs.constants.W_OK)
+	const fptf = await toFPTF(sourceDir)
+	const tasks = []
 
-		const streams = []
+	for (let file in fptf) {
+		const dest = path.join(destDir, file + '.ndjson')
+		tasks.push(pPump(
+			fptf[file],
+			ndjson.stringify(),
+			fse.createWriteStream(dest)
+		))
+	}
 
-		for(let file in fptf){
-			const filePath = path.join(destination, file + '.ndjson')
-			streams.push(fptf[file].pipe(ndjson.stringify()).pipe(fs.createWriteStream(filePath)))
-		}
+	await Promise.all(tasks)
 
-		Promise.all(streams.map(toPromise))
-		.then((done) => {
-			let i = 0
-			for(let file in fptf){
-				const filePath = path.join(destination, file + '.ndjson')
-				if(isEmpty(filePath)){
-					fs.unlinkSync(filePath)
-					i++
-				}
-			}
-			console.log(`${files.length - i} files written`)
-		})
-		.catch((error) => {
-			console.error(error)
-			throw new Error(error)
-		})
-	})
-	.catch((error) => {
-		console.error(error)
-		throw new Error(error)
-	})
+	let filesWritten = 0
+	for (let file in fptf) {
+		const dest = path.join(destDir, file + '.ndjson')
+		if (await pIsEmptyFile(dest)) await fse.remove(dest)
+		else filesWritten++
+	}
+	console.info(`${filesWritten} files written`)
 }
 
 main(opt)
+.catch((err) => {
+	console.error(err)
+	process.exitCode = 1
+})
