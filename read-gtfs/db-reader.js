@@ -25,19 +25,19 @@ const pRange = (db, computeKey) => {
 const createReader = (db) => ({
 	agency: single(db, dbToData.agency),
 	agencies: pRange(db, dbToData.agency),
-	agencyStream: range(db, dbToData.agency), // todo: rename to agenciesStream
+	agenciesStream: range(db, dbToData.agency),
 
 	stop: single(db, dbToData.stops),
 	stops: pRange(db, dbToData.stops),
-	stopStream: range(db, dbToData.stops), // todo: rename to stopsStream
+	stopsStream: range(db, dbToData.stops),
 
 	route: single(db, dbToData.routes),
 	routes: pRange(db, dbToData.routes),
-	routeStream: range(db, dbToData.routes), // todo: rename to routesStream
+	routesStream: range(db, dbToData.routes),
 
 	routeTrips: pRange(db, dbToData.trips),
 	trips: pRange(db, dbToData.trips),
-	tripStream: range(db, dbToData.trips), // todo: rename to tripsStream
+	tripsStream: range(db, dbToData.trips),
 
 	tripStopTimes: range(db, dbToData.stop_times),
 
