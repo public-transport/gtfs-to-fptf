@@ -1,10 +1,13 @@
 'use strict'
 
+const fs = require('fs')
+const path = require('path')
+
 const readStream = (dir, file) => fs.createReadStream(path.join(dir, file))
 
 const readGTFS = (dir) => {
 	return {
-		agencies: readStream(dir, 'agency.txt'),
+		agency: readStream(dir, 'agency.txt'),
 		stops: readStream(dir, 'stops.txt'),
 		routes: readStream(dir, 'routes.txt'),
 		trips: readStream(dir, 'trips.txt'),

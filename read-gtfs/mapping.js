@@ -2,7 +2,7 @@
 
 const randomId = require('unique-string')
 
-const dataToDB = {
+const dataToDb = {
 	agency: a => 'agency-' + a.agency_id,
 	stops: s => 'stop-' + s.stop_id,
 	routes: r => 'route-' + r.route_id,
@@ -34,4 +34,4 @@ const dbToData = {
 	}
 }
 
-module.exports = {dataToDB, dbToData}
+module.exports = {dataToDb, dbToData}
