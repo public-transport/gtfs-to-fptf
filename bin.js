@@ -1,4 +1,4 @@
-#!/usr/bin/env node --max-old-space-size=4096
+#!/usr/bin/env node
 'use strict'
 
 const mri = require('mri')
@@ -16,45 +16,45 @@ const argv = mri(process.argv.slice(2), {
 	boolean: ['help', 'h', 'version', 'v']
 })
 
-const opt = {
-    source: argv._[0],
-    destination: argv._[1],
-    help: argv.help || argv.h,
-    version: argv.version || argv.v
-}
-
-if (opt.help === true) {
+if (argv.help === true || argv.h === true) {
 	process.stdout.write(`
 gtfs-to-fptf [options] gtfs-directory fptf-directory
 
 Arguments:
-    gtfs-directory       Input directory containing GTFS textfiles.
-    fptf-directory       Output directory where the FPTF files will be created.
+	gtfs-directory       Input directory containing GTFS textfiles.
+	fptf-directory       Output directory where the FPTF files will be created.
 
 Options:
-    --help       -h  Show this help message.
-    --version    -v  Show the version number.
+	--tmp-dir    -t  Directory to store intermediate files. Default: unique tmp dir
+	--help       -h  Show this help message.
+	--version    -v  Show the version number.
 
 `)
 	process.exit(0)
 }
 
-if (opt.version === true) {
+if (argv.version === true || argv.v === true) {
 	process.stdout.write(`${pkg.version}\n`)
 	process.exit(0)
 }
 
 // main program
 
+const config = {
+	source: argv._[0],
+	destination: argv._[1],
+	tmpDir: argv['tmp-dir'] || argv.t || null
+}
+
 const pPump = pify(pump)
 const pIsEmptyFile = pify(isEmptyFile)
 
-const main = async (opt) => {
-	const sourceDir = path.resolve(opt.source)
-	const destDir = path.resolve(opt.destDir)
+const main = async () => {
+	const sourceDir = path.resolve(config.source)
+	const destDir = path.resolve(config.destDir)
 	await fse.ensureDir(destDir)
 
-	const fptf = await toFPTF(sourceDir)
+	const fptf = await toFPTF(sourceDir, config.tmpDir)
 	const tasks = []
 
 	for (let file in fptf) {
@@ -77,7 +77,7 @@ const main = async (opt) => {
 	console.info(`${filesWritten} files written`)
 }
 
-main(opt)
+main()
 .catch((err) => {
 	console.error(err)
 	process.exitCode = 1
