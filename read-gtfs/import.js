@@ -1,6 +1,6 @@
 'use strict'
 
-const parseCsv = require('fast-csv')
+const parseCsv = require('csv-parser')
 const levelWriteStream = require('level-write-stream')
 const map = require('through2-map').obj
 const pump = require('pump')
@@ -34,7 +34,7 @@ const importIntoDB = (gtfs, db) => {
 		})
 
 		pump(
-			parseCsv({headers: true}), // parse
+			parseCsv(), // parse CSV
 			map(dataToOp), // convert
 			levelWriteStream(db), // store
 			(err) => {
