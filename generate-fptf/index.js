@@ -19,10 +19,10 @@ const createSchedule = require('./lib/schedule')
 
 const main = (gtfs) => {
     // write operators
-    const operators = gtfs.agencyStream().pipe(map(createOperator))
+    const operators = gtfs.agenciesStream().pipe(map(createOperator))
 
     // write stations and stops
-    const stopsAndStations = gtfs.stopStream().pipe(map(createStopOrStation))
+    const stopsAndStations = gtfs.stopsStream().pipe(map(createStopOrStation))
     const stations = stopsAndStations.pipe(filter((x) => x.type === 'station'))
     const stops = stopsAndStations.pipe(filter((x) => x.type === 'stop'))
 
@@ -32,7 +32,7 @@ const main = (gtfs) => {
     const schedules = stream()
     const routeCollection = {}
     const tripToRoute = {}
-    const gtfsTrips = gtfs.tripStream()
+    const gtfsTrips = gtfs.tripsStream()
     gtfsTrips.on('data', (gtfsTrip) => {
         // todo: check if drop_off_type == 1
         gtfs.tripStopTimes(gtfsTrip.trip_id).then((stopTimes) => {
@@ -71,7 +71,7 @@ const main = (gtfs) => {
         // todo: nest routes in lines?
         // write lines
         const routesPerLine = helpers.groupRoutesByLine(routeList)
-        gtfs.routeStream().pipe(map(createLine(routesPerLine))).pipe(lines)
+        gtfs.routesStream().pipe(map(createLine(routesPerLine))).pipe(lines)
     })
 
     return {

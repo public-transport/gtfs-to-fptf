@@ -1,62 +1,46 @@
 'use strict'
 
-const parseCsv = require('fast-csv')
-const level = require('level')
-const levelWriteStream = require('level-writestream')
-const tmp = require('tmp')
-const map = require('through2-map').obj
+const pify = require('pify')
 const pump = require('pump')
-
-// cleanup even on errors
-tmp.setGracefulCleanup()
+const parseCsv = require('csv-parser')
+const levelWriteStream = require('./lib/level-write-stream')
+const map = require('through2-map').obj
 
 const {dataToDb} = require('./mapping')
 
-const importIntoDB = (gtfs) => {
+const pPump = pify(pump)
+
+const importIntoDB = (gtfs, db) => {
 	// todo: additional file checks
 	if(!gtfs.calendar && !gtfs.calendar_dates){
 		throw new Error('missing `calendar` or `calendar_dates`, at least one must exist.')
 	}
-	const tempDir = tmp.dirSync({prefix: 'read-GTFS-'})
-	console.warn(`database written to ${tempDir.name}`) // todo: remove logging, expose path
-	const db = level(tempDir.name, {
-		valueEncoding: 'json'
-	})
-	levelWriteStream(db)
+
+	const convert = (input, mapKey) => {
+		return pPump(
+			input,
+			parseCsv(),
+			// convert to LevelDB op
+			map(data => ({key: mapKey(data), value: data})),
+			levelWriteStream(db) // store
+		)
+	}
 
 	const tasks = [
-		{input: gtfs.agency, key: dataToDb.agency},
-		{input: gtfs.stops, key: dataToDb.stops},
-		{input: gtfs.routes, key: dataToDb.routes},
-		{input: gtfs.trips, key: dataToDb.trips},
-		{input: gtfs.stop_times, key: dataToDb.stop_times}
+		convert(gtfs.agency, dataToDb.agency),
+		convert(gtfs.stops, dataToDb.stops),
+		convert(gtfs.routes, dataToDb.routes),
+		convert(gtfs.trips, dataToDb.trips),
+		convert(gtfs.stop_times, dataToDb.stop_times)
 	]
 	if (gtfs.calendar) {
-		tasks.push({input: gtfs.calendar, key: dataToDb.calendar})
+		tasks.push(convert(gtfs.calendar, dataToDb.calendar))
 	}
 	if (gtfs.calendar_dates) {
-		tasks.push({input: gtfs.calendar_dates, key: dataToDb.calendar_dates})
+		tasks.push(convert(gtfs.calendar_dates, dataToDb.calendar_dates))
 	}
 
-	const processTask = (task) => new Promise((resolve, reject) => {
-		const dataToOp = (data) => ({
-			key: task.key(data),
-			value: data
-		})
-
-		pump(
-			parseCsv({headers: true}), // parse
-			map(dataToOp), // convert
-			db.createWriteStream(), // store
-			(err) => {
-				if (err) reject(err)
-				else resolve()
-			}
-		)
-	})
-
-	return Promise.all(tasks.map(processTask))
-	.then(() => db)
+	return Promise.all(tasks)
 }
 
 module.exports = importIntoDB

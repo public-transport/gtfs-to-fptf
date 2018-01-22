@@ -48,27 +48,10 @@ if (opt.version === true) {
 const files = ['agency', 'stops', 'routes', 'trips', 'stop_times', 'calendar', 'calendar_dates']
 
 const main = (opt) => {
-	const source = path.resolve(opt.source)
+	const sourceDir = path.resolve(opt.source)
 	const destination = path.resolve(opt.destination)
 
-	const gtfs = {}
-	for(let file of files){
-		const filePath = path.join(source, file + '.txt')
-		if(!fs.existsSync(filePath)){
-			if(['calendar', 'calendar_dates'].includes(file)){
-				gtfs[file] = null
-			}
-			else{
-				throw new Error(`file not found: '${file}.txt'`)
-			}
-		}
-		else{
-			fs.accessSync(filePath, fs.constants.R_OK)
-			gtfs[file] = fs.createReadStream(filePath)
-		}
-	}
-
-	toFPTF(gtfs)
+	toFPTF(sourceDir)
 	.then((fptf) => {
 		if(!fs.existsSync(destination)) fs.mkdirSync(destination)
 		fs.accessSync(destination, fs.constants.W_OK)
