@@ -79,7 +79,6 @@ gtfs-to-fptf gtfs-directory fptf-directory
 
 - extended testing (there's probably still a lot of bugs)
 - improve error handling
-- outsource the GTFS library
 - dependency cleanup
 - tests
 - publish to npm (eventually)

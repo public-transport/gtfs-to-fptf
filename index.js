@@ -4,9 +4,8 @@ const pify = require('pify')
 const level = require('level')
 const tmp = require('tmp')
 
-const readGTFS = require('./read-gtfs/read')
-const importGTFS = require('./read-gtfs/import')
-const dbReader = require('./read-gtfs/db-reader')
+const importGTFS = require('gtfs-to-leveldb')
+const createReader = require('gtfs-to-leveldb/reader')
 const generateFPTF = require('./generate-fptf')
 
 tmp.setGracefulCleanup() // clean up even on errors
@@ -17,12 +16,10 @@ const pTmpDir = pify(tmp.dir)
 const convert = async (srcDir, workDir) => {
 	if (!workDir) workDir = await pTmpDir({prefix: 'read-GTFS-'})
 
-	const gtfsStreams = readGTFS(srcDir)
 	const db = await pLevel(workDir, {valueEncoding: 'json'})
-	// todo: what if the data has already been imported?
-	await importGTFS(gtfsStreams, db)
+	await importGTFS(srcDir, db)
 
-	await generateFPTF(dbReader(db))
+	await generateFPTF(createReader(db))
 	// todo: remove tmp dir
 }
 
