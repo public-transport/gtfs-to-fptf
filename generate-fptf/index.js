@@ -33,45 +33,57 @@ const main = (gtfs) => {
     const routeCollection = {}
     const tripToRoute = {}
     const gtfsTrips = gtfs.tripsStream()
+
+    const reading = []
+
     gtfsTrips.on('data', (gtfsTrip) => {
-        // todo: check if drop_off_type == 1
-        gtfs.tripStopTimes(gtfsTrip.trip_id).then((stopTimes) => {
-            stopTimes = sortBy(stopTimes, (x) => toNumber(x.stop_sequence))
+        reading.push(
+            gtfs.tripStopovers(gtfsTrip.trip_id).then((stopTimes) => {
+                // todo: check if drop_off_type == 1
+                stopTimes = sortBy(stopTimes, (x) => toNumber(x.stop_sequence))
 
-            // ROUTES AND LINES
-            const stops = stopTimes.map((x) => toString(x.stop_id))
-            const hash = JSON.stringify({line: gtfsTrip.route_id, stops})
-            // create route
-            if(!routeCollection[hash])
-                routeCollection[hash] = createRoute(gtfsTrip, stops)
-            // save route <-> trip relation
-            tripToRoute[gtfsTrip.trip_id] = routeCollection[hash].id
+                // ROUTES AND LINES
+                const stops = stopTimes.map((x) => toString(x.stop_id))
+                const hash = JSON.stringify({line: gtfsTrip.route_id, stops})
+                // create route
+                if(!routeCollection[hash])
+                    routeCollection[hash] = createRoute(gtfsTrip, stops)
+                // save route <-> trip relation
+                tripToRoute[gtfsTrip.trip_id] = routeCollection[hash].id
 
 
-            // SCHEDULES
-            Promise.all([gtfs.service(gtfsTrip.service_id), gtfs.serviceCalendarDates(gtfsTrip.service_id)])
-            .then(([service, calendarDates]) => {
-                const dates = helpers.expandToDates(service, calendarDates)
-                const sequence = helpers.createSequence(stopTimes)
-                const firstDeparture = stopTimes[0].departure_time
+                // SCHEDULES
+                return Promise.all([gtfs.service(gtfsTrip.service_id), gtfs.serviceExceptions(gtfsTrip.service_id)])
+                .then(([service, calendarDates]) => {
+                    const dates = helpers.expandToDates(service, calendarDates)
+                    const sequence = helpers.createSequence(stopTimes)
+                    const firstDeparture = stopTimes[0].departure_time
 
-                helpers.getTimezone(gtfsTrip, gtfs)
-                .then((timezone) => helpers.generateStartPoints(firstDeparture, dates, timezone))
-                .then((starts) => {
-                    schedules.write(createSchedule(gtfsTrip, starts, sequence))
+                    return helpers.getTimezone(gtfsTrip, gtfs)
+                    .then((timezone) => helpers.generateStartPoints(firstDeparture, dates, timezone))
+                    .then((starts) => {
+                        schedules.write(createSchedule(gtfsTrip, starts, sequence))
+                    })
+                    .catch(e => console.error(`Unable to fetch timezone for trip "${gtfsTrip.trip_id}"!`))
                 })
+                .catch(e => console.error(`Skipping entries for service "${gtfsTrip.service_id}", not found in database!`))
             })
-        })
+            .catch(e => console.error(`Skipping entries for trip "${gtfsTrip.trip_id}", not found in database!`))
+        )
     })
     gtfsTrips.on('end', () => {
-        // write routes
-        const routeList = toArray(routeCollection)
-        toStream(routeList).pipe(routes)
+        Promise.all(reading).then(() => {
+            // write routes
+            const routeList = toArray(routeCollection)
+            toStream(routeList).pipe(routes)
 
-        // todo: nest routes in lines?
-        // write lines
-        const routesPerLine = helpers.groupRoutesByLine(routeList)
-        gtfs.routesStream().pipe(map(createLine(routesPerLine))).pipe(lines)
+            // todo: nest routes in lines?
+            // write lines
+            const routesPerLine = helpers.groupRoutesByLine(routeList)
+            gtfs.routesStream().pipe(map(createLine(routesPerLine))).pipe(lines)
+
+            schedules.end() // todo
+        })
     })
 
     return {

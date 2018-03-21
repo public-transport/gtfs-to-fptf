@@ -25,7 +25,7 @@
 	],
 	"dependencies": {
 		"fs-extra": "^5.0.0",
-		"gtfs-to-leveldb": "^0.1.0",
+		"gtfs-to-leveldb": "^0.2.0",
 		"into-stream": "^3.1.0",
 		"is-empty-file": "^1.0.1",
 		"level": "^2.0.0",

@@ -19,7 +19,7 @@ const convert = async (srcDir, workDir) => {
 	const db = await pLevel(workDir, {valueEncoding: 'json'})
 	await importGTFS(srcDir, db)
 
-	await generateFPTF(createReader(db))
+	return generateFPTF(createReader(db))
 	// todo: remove tmp dir
 }
 
