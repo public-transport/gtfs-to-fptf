@@ -35,7 +35,8 @@ const createStopOrStation = (stop) => {
         name: toString(stop.stop_name),
         code: toString(stop.stop_code) || null,
         description: toString(stop.stop_desc) || null,
-        coordinates: { // todo: nested vs. inline?
+        location: {
+            type: 'location',
             longitude: toNumber(stop.stop_lon),
             latitude: toNumber(stop.stop_lat)
         },
