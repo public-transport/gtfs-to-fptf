@@ -47,7 +47,7 @@ const config = {
 }
 
 const pPump = pify(pump)
-const pIsEmptyFile = pify(isEmptyFile)
+const pIsEmptyFile = pify(isEmptyFile, {errorFirst: false})
 
 const main = async () => {
 	const sourceDir = path.resolve(config.source)
