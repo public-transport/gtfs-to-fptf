@@ -1,7 +1,7 @@
 {
 	"name": "gtfs-to-fptf",
 	"description": "Convert GFTS data to FPTF: lib & CLI.",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"bin": {
 		"gtfs-to-fptf": "./bin.js"
 	},
