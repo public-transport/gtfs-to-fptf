@@ -5,9 +5,10 @@ const uniq = require('lodash.uniq')
 const union = require('lodash.union')
 const filter = require('lodash.filter')
 
-const moment = require('moment')
-const momentTz = require('moment-timezone') // shitty workaround for moment-duration-format bug
-require('moment-duration-format')
+const moment = require('moment-timezone')
+const momentDurationFormatPlugin = require('moment-duration-format')
+
+momentDurationFormatPlugin(moment)
 
 const toSeconds = (timeString) => moment.duration(timeString).asSeconds()
 
@@ -28,10 +29,10 @@ const expandToDates = (service, calendarDates) => {
         if(!service.start_date || !service.end_date){
             throw new Error('missing `start_date` or `end_date`.')
         }
-        const start = momentTz(service.start_date, 'YYYYMMDD').startOf('day')
-        const end = momentTz(service.end_date, 'YYYYMMDD').startOf('day')
+        const start = moment(service.start_date, 'YYYYMMDD').startOf('day')
+        const end = moment(service.end_date, 'YYYYMMDD').startOf('day')
 
-        let date = momentTz(start)
+        let date = moment(start)
         while(+date <= +end){
             const weekday = date.format('dddd').toLowerCase()
             if(toNumber(service[weekday]) === 1) dates.push(date.format('YYYYMMDD'))
@@ -85,7 +86,7 @@ const getTimezone = (trip, model) =>
 
     const generateStartPoints = (time, dates, timezone) =>
         // todo: time > 24:00:00 ?
-        dates.map((date) => +momentTz.tz(`${date} ${time}`, 'YYYYMMDD HH:mm:ss', timezone))
+        dates.map((date) => +moment.tz(`${date} ${time}`, 'YYYYMMDD HH:mm:ss', timezone))
 
 module.exports = {
     groupRoutesByLine,
