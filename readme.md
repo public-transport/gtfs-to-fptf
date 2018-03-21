@@ -12,22 +12,33 @@ Convert [GTFS](https://developers.google.com/transit/gtfs/) data to [FPTF](https
 
 ## Installation
 
+### CLI
+```shell
+npm install -g gtfs-to-fptf
+```
+
 ### Library
 
 ```shell
 npm install --save gtfs-to-fptf
 ```
 
-### CLI
-```shell
-npm install -g gtfs-to-fptf
-```
-
 ## Usage
+
+### CLI
+
+```shell
+gtfs-to-fptf gtfs-directory fptf-directory
+```
 
 ### Library
 
-The script takes an object containing **valid** GTFS file streams and returns a [`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/promise) that will resolve in another object containing FPTF object streams.
+```js
+toFPTF(gtfsDirectory, workingDirectory = null)
+```
+
+`gtfsDirectory` is the path to a directory containing `.txt` files, via the optional `workingDirectory` you can change where the scripts creates a temporary `level` db.
+Returns a [`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/promise) that will resolve in an object containing FPTF object streams.
 
 Currently, the following GTFS files are supported:
 
@@ -41,20 +52,8 @@ Currently, the following GTFS files are supported:
 
 ```js
 const toFPTF = require('gtfs-to-fptf')
-const fs = require('fs')
 
-
-const gtfs = {
-    agency: fs.createReadStream('./gtfs-dir/agency.txt'),
-    stops: fs.createReadStream('./gtfs-dir/stops.txt'),
-    routes: fs.createReadStream('./gtfs-dir/routes.txt'),
-    trips: fs.createReadStream('./gtfs-dir/trips.txt'),
-    stop_times: fs.createReadStream('./gtfs-dir/stop_times.txt'),
-    calendar: fs.createReadStream('./gtfs-dir/calendar.txt'),
-    calendar_dates: fs.createReadStream('./gtfs-dir/calendar_dates.txt')
-}
-
-toFPTF(gtfs)
+toFPTF('./bus-gtfs/')
 .then((fptf) => {
     fptf.stations.pipe(someStream)
     fptf.schedules.pipe(someOtherStream)
@@ -69,21 +68,12 @@ The FPTF object contains the following streams:
 - `routes`
 - `schedules`
 
-### CLI
-
-```shell
-gtfs-to-fptf gtfs-directory fptf-directory
-```
-
 ## To do
 
 - extended testing (there's probably still a lot of bugs)
 - improve error handling
 - dependency cleanup
 - tests
-- publish to npm (eventually)
-
-[@juliuste](https://github.com/juliuste) will be working on this the next few days.
 
 ## Contributing
 
