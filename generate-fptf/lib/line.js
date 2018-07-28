@@ -34,6 +34,7 @@ const createLine = (routesPerLine) => (route) => ({
     code: toString(route.route_short_name), // todo: is this correct/ok?
     description: toString(route.route_desc) || null,
     mode: detectMode(route.route_type), // todo: "product"?
+    gtfsMode: route.route_type,
     url: toString(route.route_url) || null,
     color: { // todo: nested vs. inline?
         text: toString(route.route_text_color) || null,
