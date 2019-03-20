@@ -1,15 +1,15 @@
 .DS_Store
-Thumbs.db
 
-.nvm-version
-node_modules
-npm-debug.log
-dist
+/.nvm-version
+/node_modules
+/npm-debug.log
 
-yarn.lock
-package-lock.json
+/yarn.lock
+/pnpm-lock.yaml
+/package-lock.json
 
-*-gtfs
-*-fptf
-!read-gtfs
-!generate-fptf
+/dist
+/*-gtfs
+/*-fptf
+!/read-gtfs
+!/generate-fptf
