@@ -1,8 +1,8 @@
 'use strict'
 
-const toString = require('lodash.tostring')
-const toNumber = require('lodash.tonumber')
-const merge = require('lodash.merge')
+const toString = require('lodash/toString')
+const toNumber = require('lodash/toNumber')
+const merge = require('lodash/merge')
 
 const detectType = (stop) => {
 	switch (stop.location_type) {

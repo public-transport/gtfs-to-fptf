@@ -2,10 +2,10 @@
 
 const map = require('through2-map').obj
 const filter = require('through2-filter').obj
-const sortBy = require('lodash.sortby')
-const toString = require('lodash.tostring')
-const toNumber = require('lodash.tonumber')
-const toArray = require('lodash.toarray')
+const sortBy = require('lodash/sortBy')
+const toString = require('lodash/toString')
+const toNumber = require('lodash/toNumber')
+const toArray = require('lodash/toArray')
 const toStream = require('into-stream').obj
 const { lineString } = require('@turf/helpers')
 

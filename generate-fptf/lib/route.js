@@ -1,6 +1,6 @@
 'use strict'
 
-const toString = require('lodash.tostring')
+const toString = require('lodash/toString')
 
 const createRoute = (trip, stops, polyline) => ({
 	type: 'route',

@@ -1,7 +1,7 @@
 'use strict'
 
-const toString = require('lodash.tostring')
-const toNumber = require('lodash.tonumber')
+const toString = require('lodash/toString')
+const toNumber = require('lodash/toNumber')
 
 const detectAccessible = (wheelchairBoarding) => {
 	switch (wheelchairBoarding) {

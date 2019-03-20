@@ -1,9 +1,9 @@
 'use strict'
 
-const toNumber = require('lodash.tonumber')
-const uniq = require('lodash.uniq')
-const union = require('lodash.union')
-const filter = require('lodash.filter')
+const toNumber = require('lodash/toNumber')
+const uniq = require('lodash/uniq')
+const union = require('lodash/union')
+const filter = require('lodash/filter')
 
 const moment = require('moment-timezone')
 const momentDurationFormatPlugin = require('moment-duration-format')
