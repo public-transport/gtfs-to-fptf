@@ -9,7 +9,5 @@
 /package-lock.json
 
 /dist
-/*-gtfs
-/*-fptf
-!/read-gtfs
-!/generate-fptf
+/input-gtfs
+/output-fptf

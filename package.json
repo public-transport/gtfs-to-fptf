@@ -25,7 +25,7 @@
 		"gtfs-to-fptf": "./bin.js"
 	},
 	"scripts": {
-		"check-deps": "depcheck",
+		"check-deps": "depcheck --ignore-dirs=input-gtfs,output-fptf",
 		"fix": "eslint --fix generate-fptf index.js bin.js",
 		"lint": "eslint generate-fptf index.js bin.js",
 		"prepublishOnly": "npm test",
