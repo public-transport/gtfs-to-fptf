@@ -14,9 +14,9 @@ const pLevel = pify(level)
 const pTmpDir = pify(tmp.dir)
 
 const convert = async (srcDir, workDir) => {
-	if (!workDir) workDir = await pTmpDir({prefix: 'read-GTFS-'})
+	if (!workDir) workDir = await pTmpDir({ prefix: 'read-GTFS-' })
 
-	const db = await pLevel(workDir, {valueEncoding: 'json'})
+	const db = await pLevel(workDir, { valueEncoding: 'json' })
 	await importGTFS(srcDir, db)
 
 	return generateFPTF(createReader(db))

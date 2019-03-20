@@ -47,7 +47,7 @@ const config = {
 }
 
 const pPump = pify(pump)
-const pIsEmptyFile = pify(isEmptyFile, {errorFirst: false})
+const pIsEmptyFile = pify(isEmptyFile, { errorFirst: false })
 
 const main = async () => {
 	const sourceDir = path.resolve(config.source)
@@ -78,7 +78,7 @@ const main = async () => {
 }
 
 main()
-.catch((err) => {
-	console.error(err)
-	process.exitCode = 1
-})
+	.catch((err) => {
+		console.error(err)
+		process.exitCode = 1
+	})
