@@ -49,6 +49,7 @@ Currently, the following GTFS files are supported:
 - `stop_times.txt` **required**
 - `calendar.txt` *optional*, **required** if `calendar_dates.txt` is not provided
 - `calendar_dates.txt` *optional*, **required** if `calendar.txt` is not provided
+- `shapes.txt` **optional**
 
 ```js
 const toFPTF = require('gtfs-to-fptf')

@@ -24,8 +24,9 @@
 		"bin.js"
 	],
 	"dependencies": {
+		"@turf/helpers": "^6.1.4",
 		"fs-extra": "^5.0.0",
-		"gtfs-to-leveldb": "^0.2.0",
+		"gtfs-to-leveldb": "github:public-transport/gtfs-to-leveldb#shapes",
 		"into-stream": "^3.1.0",
 		"is-empty-file": "^1.0.1",
 		"level": "^3.0.0",

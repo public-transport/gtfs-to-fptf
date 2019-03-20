@@ -7,6 +7,7 @@ const toString = require('lodash.tostring')
 const toNumber = require('lodash.tonumber')
 const toArray = require('lodash.toarray')
 const toStream = require('into-stream').obj
+const { point, lineString } = require('@turf/helpers')
 
 const stream = () => map((x) => x)
 
@@ -37,39 +38,59 @@ const main = (gtfs) => {
     const reading = []
 
     gtfsTrips.on('data', (gtfsTrip) => {
-        reading.push(
-            gtfs.tripStopovers(gtfsTrip.trip_id).then((stopTimes) => {
-                // todo: check if drop_off_type == 1
-                stopTimes = sortBy(stopTimes, (x) => toNumber(x.stop_sequence))
+        reading.push((async () => {
+            let _stopTimes
+            try {
+                _stopTimes = await gtfs.tripStopovers(gtfsTrip.trip_id)
+            } catch (error) {
+                return console.error(`Skipping entries for trip "${gtfsTrip.trip_id}", not found in database!`)
+            }
+            // todo: check if drop_off_type == 1
+            const stopTimes = sortBy(_stopTimes, (x) => toNumber(x.stop_sequence))
 
-                // ROUTES AND LINES
-                const stops = stopTimes.map((x) => toString(x.stop_id))
-                const hash = JSON.stringify({line: gtfsTrip.route_id, stops})
-                // create route
-                if(!routeCollection[hash])
-                    routeCollection[hash] = createRoute(gtfsTrip, stops)
-                // save route <-> trip relation
-                tripToRoute[gtfsTrip.trip_id] = routeCollection[hash].id
+            // ROUTES AND LINES
+            const stops = stopTimes.map((x) => toString(x.stop_id))
+            const hash = JSON.stringify({line: gtfsTrip.route_id, stops})
+            // create route
+            if(!routeCollection[hash]) {
+                let polyline
+                try {
+                    if (gtfsTrip.shape_id) {
+                        const shapes = await (gtfs.shapes(gtfsTrip.shape_id).catch((error) => undefined))
+                        if (Array.isArray(shapes) && shapes.length >= 2) {
+                            const sorted = sortBy(shapes, shape => +shape.shape_pt_sequence)
+                            const points = sorted.map(shape => [+shape.shape_pt_lon, +shape.shape_pt_lat])
+                            polyline = lineString(points)
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Skipping shapes for trip "${gtfsTrip.trip_id}", error!`)
+                }
+                routeCollection[hash] = createRoute(gtfsTrip, stops, polyline)
+            }
+            // save route <-> trip relation
+            tripToRoute[gtfsTrip.trip_id] = routeCollection[hash].id
 
+            // SCHEDULES
+            let service, calendarDates
+            try {
+                [service, calendarDates] = await Promise.all([gtfs.service(gtfsTrip.service_id), gtfs.serviceExceptions(gtfsTrip.service_id)])
+            } catch (error) {
+                return console.error(`Skipping entries for service "${gtfsTrip.service_id}", not found in database!`)
+            }
+            const dates = helpers.expandToDates(service, calendarDates)
+            const sequence = helpers.createSequence(stopTimes)
+            const firstDeparture = stopTimes[0].departure_time
 
-                // SCHEDULES
-                return Promise.all([gtfs.service(gtfsTrip.service_id), gtfs.serviceExceptions(gtfsTrip.service_id)])
-                .then(([service, calendarDates]) => {
-                    const dates = helpers.expandToDates(service, calendarDates)
-                    const sequence = helpers.createSequence(stopTimes)
-                    const firstDeparture = stopTimes[0].departure_time
-
-                    return helpers.getTimezone(gtfsTrip, gtfs)
-                    .then((timezone) => helpers.generateStartPoints(firstDeparture, dates, timezone))
-                    .then((starts) => {
-                        schedules.write(createSchedule(gtfsTrip, starts, sequence))
-                    })
-                    .catch(e => console.error(`Unable to fetch timezone for trip "${gtfsTrip.trip_id}"!`))
-                })
-                .catch(e => console.error(`Skipping entries for service "${gtfsTrip.service_id}", not found in database!`))
-            })
-            .catch(e => console.error(`Skipping entries for trip "${gtfsTrip.trip_id}", not found in database!`))
-        )
+            let starts
+            try {
+                const timezone = await helpers.getTimezone(gtfsTrip, gtfs)
+                starts = await helpers.generateStartPoints(firstDeparture, dates, timezone)
+            } catch (error) {
+                console.error(`Unable to fetch timezone for trip "${gtfsTrip.trip_id}"!`)
+            }
+            schedules.write(createSchedule(gtfsTrip, starts, sequence))
+        })())
     })
     gtfsTrips.on('end', () => {
         Promise.all(reading).then(() => {
