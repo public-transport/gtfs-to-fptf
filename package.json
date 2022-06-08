@@ -37,7 +37,7 @@
 		"gtfs-to-leveldb": "github:public-transport/gtfs-to-leveldb#shapes",
 		"into-stream": "^3.1.0",
 		"is-empty-file": "^1.0.1",
-		"level": "^3.0.0",
+		"level": "^5.0.0",
 		"lodash": "^4.17.11",
 		"moment-duration-format": "^2.2.2",
 		"moment-timezone": "^0.5.14",
